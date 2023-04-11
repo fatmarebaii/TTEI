@@ -42,6 +42,21 @@
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/eng.svg" alt="icone"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">Engaged Quantity</h2>
                                 <div id="qteEng" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
+                                $sql="SELECT * FROM `prod__product`";
+                                $rslt=$con->query($sql);
+
+                                $product=[];
+
+                                $EQ=0;
+                                while ($item = $rslt->fetch_assoc())
+                                {
+                                    $product[] = $item;
+                                }
+
+                                for($i=0; $i<count($product); $i++){
+                                    $EQ += $product[$i]['pack_quantity'];
+                                }
+                                echo ($EQ);
                                 ?> </div>
                             </div>
                         </div>
@@ -52,7 +67,7 @@
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/prog.svg" alt="icone"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">In Progress Quantity</h2>
                                 <div id="qteProg" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
-                                ?> </div>
+                                echo ($EQ);?> </div>
                             </div>
                         </div>
                     </div>
