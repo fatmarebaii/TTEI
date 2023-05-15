@@ -21,10 +21,20 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
     $prodline = $_GET["prod_line"];
     //$prod=$_GET["prod"];
 ?>
+
+    <!-- <script>
+            function autoRefresh() {
+                window.location = window.location.href="http://localhost/TTEI/dist/index.php?prod_line=<?php //echo($prod);
+                                    ?>&prod=<?php //echo($prodline);
+                ?>";
+            }
+            setInterval('autoRefresh()', 60000);
+        </script> -->
+
     <script>
         function autoRefresh() {
-            //window.location = window.location.href = "http://10.33.8.18/TTEI/dist/index.php?prod_line=F56";
-            //window.location = window.location.href = "http://192.168.201.19/TTEI/dist/index.php?prod_line=F56";
+            // window.location = window.location.href = "http://10.33.8.18/TTEI/dist/index.php?prod_line=F56";
+            window.location = window.location.href = "http://192.168.201.19/TTEI/dist/indexshift.php?prod_line=F56";
         }
         setInterval(autoRefresh, 10000);
     </script>
@@ -49,7 +59,8 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                     <h4 class="navbar-nav ms-auto mb-2 mb-lg-0 text-indigo" id="time"> HEURE: <?php echo (date('H:i')); ?> </h4>
                 </div>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <a class="navbar-brand" href="https://onetech-group.com/"> <img src="img/OneTechLogo.png" alt="Logo" style="width:40mm;height:40mm;margin-left:30mm"></a>
+                    <!-- <h1 class="navbar-nav ms-auto mb-2 mb-lg-0 text-indigo"> TTEI </h1> -->
+                    <div class=""> <img src="img/OneTechLogo.png" alt="Logo" style="width:40mm;height:40mm;margin-left:30mm"></div>
                 </div>
             </div>
         </nav>
@@ -65,7 +76,7 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/prog.svg" alt="icone"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">Référence Encours</h2>
                                 <div id="qteEng" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
-                                    $sql1 = "SELECT * FROM `prod__control` WHERE `prod_line`='$prodline' ";
+                                    $sql1 = "SELECT * FROM `prod__control` WHERE `prod_line`='$prodline'";
                                     $rslt1 = $con->query($sql1);
 
                                     $control = [];
@@ -75,7 +86,6 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                     }
 
                                     $reference = $control[count($control) - 1]['reference'];
-                                    $of = $control[count($control) - 1]['OF'];
                                     echo ($reference)
                                     ?> </div>
                             </div>
@@ -92,82 +102,16 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                     $OK = 0;
                                     $NOK = 0;
                                     $tab = [];
-                                    $item=[];
-                                    $item1=[];
-                                    $shift =0;
 
-                                    $sql="SELECT `prod_line`,
-                                                `shift_duration`
-                                            FROM `init__prod_line`
-                                            WHERE `prod_line` ='$prodline'";
-                                    $rslt = $con->query($sql);
-                                    $item = $rslt->fetch_assoc();
-                                    $shift = $item['shift_duration'];
-                                    $shift = (int)$shift + 1 ;
-                                    // echo $shift ;
+                                    $sql= "";
 
-                                    $sql1="SELECT
-                                    CAST(
-                                        CONCAT(
-                                            `prod__presence`.`cur_date`,
-                                            ' ',
-                                            `prod__presence`.`cur_time`
-                                        ) AS DATETIME
-                                    ) AS 'start_shift'
-                                FROM
-                                    `prod__presence`
-                                WHERE
-                                    `id` IN(
-                                    SELECT
-                                        MAX(`id`)
-                                    FROM
-                                        `prod__presence`
-                                    GROUP BY
-                                        `matricule`
-                                ) AND `p_state` = 'in' AND `prod_line` = '$prodline' AND CAST(
-                                    CAST(
-                                        HOUR(
-                                            TIMEDIFF(
-                                                CURRENT_DATE,
-                                                `prod__presence`.`cur_date`
-                                            )
-                                        ) AS SIGNED
-                                    ) + CAST(
-                                        HOUR(
-                                            TIMEDIFF(
-                                                CURRENT_TIME,
-                                                `prod__presence`.`cur_time`
-                                            )
-                                        ) AS SIGNED
-                                    ) AS SIGNED
-                                ) < ($shift+1)
-                                ORDER BY
-                                    `id` ASC
-                                LIMIT 1;";
-                                $rslt1 = $con->query($sql1);
-                                $item1 = $rslt1->fetch_assoc();
-                                $start_shift = $item1['start_shift'];
-                                if ( $start_shift != NULL) {
-                                    $flag=1;
-                                } else {$flag =0 ; }
-                                //echo 'S_S'.$start_shift;
-                                if($flag=0){
-                                    $OK=0;
-                                    $NOK=0;
-                                }
-                                    else {
-                                        $query1 = "SELECT `prod_line`,
-                                        SUM(`OK`) AS 'OK',
-                                        SUM(`NOK`) AS 'NOK'
-                                    FROM `prod__control`
-                                    WHERE `prod_line` = '$prodline'
-                                        AND CAST(
-                                            CONCAT(
-                                                `prod__control`.`cur_date`,
-                                                ' ',
-                                                `prod__control`.`cur_time`
-                                            ) AS DATETIME
-                                        ) >= '$start_shift' ";
+                                    if (($t >= strtotime("06:00:00")) & ($t < strtotime("14:00:00"))) {
+                                        //    echo("1st shift");
+                                        $query1 = "SELECT * FROM `prod__control`
+                                        WHERE `prod__control`.`cur_time` >= '06:00:00'
+                                        AND  `prod__control`.`cur_time` < '14:00:00'
+                                        AND `prod__control`.`cur_date` = CURRENT_DATE
+                                        AND `prod_line` LIKE '%$prodline%'";
 
                                         $rslt1 = $con->query($query1);
                                         while ($item = $rslt1->fetch_assoc()) {
@@ -177,8 +121,82 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                             $OK += $tab[$i]['OK'];
                                             $NOK += $tab[$i]['NOK'];
                                         }
+                                    } elseif (($t >= strtotime("14:00:00")) & ($t < strtotime("22:00:00"))) {
+                                        //    echo("2nd shift");
+                                        $query2 = "SELECT * FROM `prod__control`
+                                   WHERE `prod__control`.`cur_time` >= '14:00:00'
+                                   AND  `prod__control`.`cur_time` < '22:00:00'
+                                   AND `prod__control`.`cur_date` = CURRENT_DATE
+                                   AND `prod_line` LIKE '%$prodline%'";
+
+                                        $rslt2 = $con->query($query2);
+
+                                        while ($item = $rslt2->fetch_assoc()) {
+                                            $tab[] = $item;
+                                        };
+                                        for ($i = 0; $i < count($tab); $i++) {
+                                            $OK += $tab[$i]['OK'];
+                                            $NOK += $tab[$i]['NOK'];
+                                        }
+                                    } elseif (($t >= strtotime("22:00:00")) & ($t < strtotime("00:00:00"))) {
+                                        //    echo("3rd shift");
+                                        $query3 = "SELECT * FROM `prod__control`
+                                   WHERE `prod__control`.`cur_time` >= '22:00:00'
+                                   AND `prod__control`.`cur_date` = CURRENT_DATE
+                                   AND `prod_line` LIKE '%$prodline%'";
+
+                                        $rslt3 = $con->query($query3);
+
+                                        while ($item = $rslt3->fetch_assoc()) {
+                                            $tab[] = $item;
+                                        };
+                                        for ($i = 0; $i < count($tab); $i++) {
+                                            $OK += $tab[$i]['OK'];
+                                            $NOK += $tab[$i]['NOK'];
+                                        }
+                                    } elseif (($t >= strtotime("00:00:00")) & ($t < strtotime("06:00:00"))) {
+                                        //    echo("3rd shift");
+
+                                        $OK1 = 0;
+                                        $OK2 = 0;
+                                        $NOK1 = 0;
+                                        $NOK2 = 0;
+
+                                        $query4 = "SELECT * FROM `prod__control`
+                                    WHERE `cur_date` = DATE_ADD(CURDATE(), INTERVAL -1 DAY)
+                                    AND `cur_time` >='22:00:00'
+                                    AND `prod_line` LIKE '%$prodline%'";
+                                        $rslt4 = $con->query($query4);
+
+                                        while ($item = $rslt4->fetch_assoc()) {
+                                            $tab[] = $item;
+                                        };
+                                        for ($i = 0; $i < count($tab); $i++) {
+                                            $OK1 += $tab[$i]['OK'];
+                                            $NOK1 += $tab[$i]['NOK'];
+                                        }
+
+                                        $query5 = "SELECT * FROM `prod__control`
+                                    WHERE `prod__control`.`cur_time` >= '00:00:00'
+                                    AND  `prod__control`.`cur_time` < '06:00:00'
+                                    AND `prod__control`.`cur_date` = CURRENT_DATE
+                                    AND `prod_line` LIKE '%$prodline%'";
+
+                                        $rslt5 = $con->query($query5);
+
+                                        while ($item = $rslt5->fetch_assoc()) {
+                                            $tab[] = $item;
+                                        };
+                                        for ($i = 0; $i < count($tab); $i++) {
+                                            $OK2 += $tab[$i]['OK'];
+                                            $NOK2 += $tab[$i]['NOK'];
+                                        }
+
+                                        $OK += $OK1 + $OK2;
+                                        $NOK += $NOK1 + $NOK2;
                                     }
-                                     echo ($OK);
+                                    echo ($OK)
+
                                     ?> </div>
                             </div>
                         </div>
@@ -188,11 +206,10 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                             <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/bad.svg" alt="icon"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">Quantité NOK</h2>
-                                <div id="qteFab" class="h2 mb-2 font-weight-bold text--bs-gray-900">
-                                    <?php
+                                <div id="qteFab" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
+
                                     echo ($NOK);
-                                    ?>
-                                </div>
+                                    ?> </div>
                             </div>
                         </div>
                     </div>
@@ -202,24 +219,19 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/settings.svg" alt="icon"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">Productivité</h2>
                                 <div id="prod" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
-                                if ($flag=0){
-                                    $production=0;
-                                } else {
                                  $query2 = "SELECT * FROM `prod__productivity` WHERE `prod_line` LIKE '$prodline' ORDER BY `id` DESC LIMIT 1";
 
                                  $rslt2 = $con->query($query2);
-                                 $tab2=[];
                                  while ($item = $rslt2->fetch_assoc()) {
                                      $tab2[] = $item;
                                  };
                                  if(count($tab2)!=0){
-                                    $production= $tab2[0]['productivity'];
-                                    echo $production;
+                                    echo $tab2[0]['productivity'];
                                  }else {
                                     echo 0 ;
                                  }
-                                }
-                                ?> </div>
+
+                                ?></div>
                             </div>
                         </div>
                     </div>
@@ -229,11 +241,10 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/activity.svg" alt="icon"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">PPM</h2>
                                 <div id="ppm" class="h2 mb-2 font-weight-bold text--bs-gray-900"> <?php
-                                if (($NOK) != 0) {
-                                    $ppm= (round((($NOK) * 1000000 / ($OK + $NOK)), 2));
-                                    echo $ppm ;
-                                } else {
+                                if (($NOK) == 0) {
                                     echo (0);
+                                } else {
+                                    echo (round((($NOK) * 100 / ($OK + $NOK)), 2) . '%');
                                 }
                                 ?> </div>
                             </div>
@@ -245,7 +256,7 @@ if (isset($_GET["prod_line"]) || isset($_GET["prod"])) {
                                 <div class="feature bg-primary bg-gradient rounded-3 mb-4 mt-n4"><img src="./img/clock.svg" alt="icon"></div>
                                 <h2 class="fs-4 fw-bold text-indigo">Présence</h2>
                                 <div id="npt" class="h2 mb-2 font-weight-bold text--bs-gray-900">
-                                    <?php $t = time();
+                                <?php $t = time();
                                     $presence = 0;
                                     $tab = [];
                                     $tab5 = [];
